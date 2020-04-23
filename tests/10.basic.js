@@ -17,7 +17,7 @@ describe(TITLE, function () {
             logger: console,
         };
         const webdump = new __1.WebsiteDump(webdumpConfig);
-        await webdump.addSitemap("http://127.0.0.1/sample/sitemapindex.xml");
+        await webdump.addSitemap("http://127.0.0.1:3000/sample/sitemapindex.xml");
         const xml = await webdump.getSitemapXML();
         assert_1.strict.ok(xml, "sitemap.xml should not be empty");
         assert_1.strict.ok(xml.indexOf("<loc>"), "sitemap.xml should have <loc>");
