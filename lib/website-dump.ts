@@ -61,7 +61,9 @@ export class WebsiteDump {
 
         const sitemapList = getItemList(sitemap.sitemapindex?.sitemap);
         if (sitemapList?.length) {
-            await Promise.all(sitemapList.map(item => this.addSitemap(item.loc)));
+            for (const item of sitemapList) {
+                await this.addSitemap(item.loc);
+            }
         }
 
         const urlList = getItemList(sitemap.urlset?.url);
