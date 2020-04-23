@@ -1,0 +1,13 @@
+!.gitkeep
+*.js
+*~
+.DS_Store
+.Thumbs
+._*
+.idea
+.vscode
+node_modules
+nohup.out
+npm-debug.log*
+package-lock.json
+~$*

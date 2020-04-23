@@ -1,0 +1,20 @@
+{
+  "name": "website-dump",
+  "description": "Dump Website",
+  "version": "0.1.0",
+  "author": "@kawanet",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "from-xml": "^0.1.6",
+    "to-xml": "^0.1.4"
+  },
+  "devDependencies": {
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.13.0",
+    "express": "^4.17.1",
+    "mocha": "^7.1.1",
+    "typescript": "^3.8.3"
+  },
+  "license": "MIT",
+  "main": "lib/website-dump.js"
+}

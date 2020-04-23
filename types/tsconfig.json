@@ -1,0 +1,16 @@
+{
+  "include": [
+    "../lib/"
+  ],
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": ".",
+    "emitDeclarationOnly": true,
+    "lib": [
+      "es2015"
+    ],
+    "types": [
+      "node"
+    ]
+  }
+}
