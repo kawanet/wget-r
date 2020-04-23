@@ -21,7 +21,7 @@ describe(TITLE, function () {
         };
 
         const webdump = new WebsiteDump(webdumpConfig);
-        await webdump.addSitemap("http://127.0.0.1/sample/sitemapindex.xml");
+        await webdump.addSitemap("http://127.0.0.1:3000/sample/sitemapindex.xml");
 
         const xml = await webdump.getSitemapXML();
         assert.ok(xml, "sitemap.xml should not be empty");

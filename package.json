@@ -16,5 +16,8 @@
     "typescript": "^3.8.3"
   },
   "license": "MIT",
-  "main": "lib/website-dump.js"
+  "main": "lib/website-dump.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha -R spec tests/??.*.js"
+  }
 }
