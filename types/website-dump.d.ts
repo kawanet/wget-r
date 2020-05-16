@@ -25,6 +25,9 @@ export interface WebsiteDumpConfig {
 export declare class WebsiteDump {
     protected config: WebsiteDumpConfig;
     protected items: WebsiteDumpItem[];
+    protected stored: {
+        [url: string]: boolean;
+    };
     constructor(config?: WebsiteDumpConfig);
     /**
      * Add page items from remote sitemap.xml
@@ -34,6 +37,7 @@ export declare class WebsiteDump {
      * Add a single page item by URL
      */
     addPage(url: string): void;
+    private addSitemapItem;
     /**
      * Run loop for each page
      */

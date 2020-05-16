@@ -38,6 +38,7 @@ const defaults: WebsiteDumpConfig = {
 export class WebsiteDump {
     protected config: WebsiteDumpConfig;
     protected items: WebsiteDumpItem[] = [];
+    protected stored: { [url: string]: boolean } = {};
 
     constructor(config?: WebsiteDumpConfig) {
         this.config = config || {} as WebsiteDumpConfig;
@@ -66,7 +67,7 @@ export class WebsiteDump {
 
         const urlList = getItemList(sitemap.urlset?.url);
         if (urlList?.length) {
-            urlList.forEach(item => this.items.push(new WebsiteDumpItem(item, this.config)));
+            urlList.forEach(item => this.addSitemapItem(item));
         }
     }
 
@@ -75,8 +76,14 @@ export class WebsiteDump {
      */
 
     addPage(url: string): void {
-        const item = new WebsiteDumpItem({loc: url}, this.config);
-        this.items.push(item);
+        this.addSitemapItem({loc: url});
+    }
+
+    private addSitemapItem(item: WebsiteDumpSitemapItem): void {
+        const {loc} = item;
+        if (this.stored[loc]) return;
+        this.stored[loc] = true;
+        this.items.push(new WebsiteDumpItem(item, this.config));
     }
 
     /**
