@@ -39,6 +39,7 @@ export class WebsiteDump {
     protected config: WebsiteDumpConfig;
     protected items: WebsiteDumpItem[] = [];
     protected stored: { [url: string]: boolean } = {};
+    protected fetched: { [url: string]: boolean } = {};
 
     constructor(config?: WebsiteDumpConfig) {
         this.config = config || {} as WebsiteDumpConfig;
@@ -146,9 +147,7 @@ export class WebsiteDumpSitemapItem {
     lastmod?: string;
 }
 
-export class WebsiteDumpItem {
-    private content: Promise<string>;
-
+export class WebsiteDumpItemBase {
     constructor(protected item: WebsiteDumpSitemapItem, protected config: WebsiteDumpConfig) {
         //
     }
@@ -165,11 +164,7 @@ export class WebsiteDumpItem {
      * Fetch HTML source from server
      */
 
-    async getContent(): Promise<string> {
-        return this.content || (this.content = this._getContent());
-    }
-
-    private async _getContent(): Promise<string> {
+    async getRawContent(): Promise<string> {
         const url = this.item.loc;
 
         const logger = this.config.logger || defaults.logger;
@@ -182,13 +177,21 @@ export class WebsiteDumpItem {
     }
 
     /**
+     * Get filtered HTML source
+     */
+
+    async getPageContent(): Promise<string> {
+        const source = await this.getRawContent();
+        const htmlFilter = this.config.htmlFilter || defaults.htmlFilter || through;
+        return await htmlFilter(source, this.item.loc);
+    }
+
+    /**
      * Fetch HTML page from server and write to local
      */
 
     async writePageTo(prefix: string): Promise<void> {
-        const htmlFilter = this.config.htmlFilter || defaults.htmlFilter || through;
-        const source = await this.getContent();
-        const content = await htmlFilter(source, this.item.loc);
+        const content = await this.getPageContent();
 
         const pathFilter = this.config.pathFilter || defaults.pathFilter || through;
         const path = prefix + await pathFilter(this.item.loc);
@@ -202,6 +205,19 @@ export class WebsiteDumpItem {
 
         const writer = this.config.writer || defaults.writer;
         await writer.writeFile(path, content);
+    }
+}
+
+export class WebsiteDumpItem extends WebsiteDumpItemBase {
+    private _raw: Promise<string>;
+    private _page: Promise<string>;
+
+    async getRawContent(): Promise<string> {
+        return this._raw || (this._raw = super.getRawContent());
+    }
+
+    async getPageContent(): Promise<string> {
+        return this._page || (this._page = super.getPageContent());
     }
 }
 
