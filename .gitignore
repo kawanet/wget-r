@@ -1,13 +1,14 @@
-!.gitkeep
-# *.js
+*.tgz
 *~
 .DS_Store
 .Thumbs
 ._*
-.idea
-.vscode
-node_modules
-nohup.out
+.idea/
+.vscode/
+node_modules/
 npm-debug.log*
 package-lock.json
+package/
+tests/**/*.js
+types/_*.d.ts
 ~$*
