@@ -6,9 +6,7 @@
     "declaration": true,
     "declarationDir": ".",
     "emitDeclarationOnly": true,
-    "lib": [
-      "es2015"
-    ],
+    "skipLibCheck": true,
     "types": [
       "node"
     ]

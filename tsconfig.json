@@ -1,22 +1,19 @@
 {
   "include": [
-    "lib/",
-    "tests/"
+    "./lib",
+    "./tests"
   ],
   "compilerOptions": {
-    "lib": [
-      "es2015"
-    ],
     "module": "commonjs",
     "noImplicitAny": true,
-    "noImplicitReturns": true,
+    "noImplicitReturns": false,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "removeComments": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "strictNullChecks": false,
-    "target": "ES2017",
+    "target": "ES2018",
     "types": [
       "mocha",
       "node"

@@ -43,8 +43,6 @@ export class WebsiteDump {
         this.config = config || {} as WebsiteDumpConfig;
     }
 
-    static defaults = defaults;
-
     /**
      * Add page items from remote sitemap.xml
      */

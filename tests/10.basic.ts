@@ -2,7 +2,7 @@
 
 import {strict as assert} from "assert";
 import {promises as fs} from "fs";
-import {WebsiteDump} from "../";
+import {WebsiteDump} from "../lib/website-dump";
 
 const TITLE = __filename.split("/").pop();
 

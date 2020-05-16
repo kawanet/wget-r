@@ -10,14 +10,24 @@
   },
   "devDependencies": {
     "@types/mocha": "^7.0.2",
-    "@types/node": "^13.13.0",
+    "@types/node": "^14.0.1",
     "express": "^4.17.1",
-    "mocha": "^7.1.1",
-    "typescript": "^3.8.3"
+    "mocha": "^7.1.2",
+    "typescript": "^3.9.2"
   },
   "license": "MIT",
   "main": "lib/website-dump.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kawanet/website-dump.git"
+  },
   "scripts": {
-    "test": "./node_modules/.bin/mocha -R spec tests/??.*.js"
+    "build": "npm run build-lib && npm run build-types",
+    "build-lib": "./node_modules/.bin/tsc -p .",
+    "build-types": "./node_modules/.bin/tsc -p types",
+    "fixpack": "fixpack",
+    "mocha": "./node_modules/.bin/mocha -R spec tests/*.js",
+    "test": "npm run mocha",
+    "tsc-watch": "tsc --watch"
   }
 }
