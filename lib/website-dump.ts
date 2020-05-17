@@ -11,6 +11,7 @@ const fromXML = require("from-xml").fromXML;
 const toXML = require("to-xml").toXML;
 
 export interface WebsiteDumpConfig {
+    include?: RegExp | { test: (path: string) => boolean };
     logger?: { log: (log: string) => void };
     fetcher?: { get: (url: string) => Promise<{ data: string }> };
     mkdir?: { mkdir: (path: string, options: { recursive: true }) => Promise<any> };
@@ -56,8 +57,7 @@ export class WebsiteDump {
      */
 
     async addSitemap(url: string): Promise<void> {
-        const logger = this.config.logger || defaults.logger;
-        logger.log("reading sitemap: " + url);
+        this.log("reading sitemap: " + url);
 
         const fetcher = this.config.fetcher || defaults.fetcher;
         const res = await fetcher.get(url);
@@ -88,8 +88,17 @@ export class WebsiteDump {
 
     private addSitemapItem(item: SitemapItem): void {
         const {loc} = item;
+
+        // test pathname is allowed
+        const url = new URL(loc);
+        const {include} = this.config;
+        if (include && !include.test(url.pathname)) return;
+
+        // double check
         if (this.stored[loc]) return;
         this.stored[loc] = true;
+
+        // add item
         this.items.push(new WebsiteDumpItem(item, this.config));
     }
 
@@ -97,11 +106,16 @@ export class WebsiteDump {
      * Run loop for each page
      */
 
-    async forEach(fn: (item: WebsiteDumpItem, idx: number) => any): Promise<void> {
+    async forEach(fn: (item: WebsiteDumpItem, idx?: number, array?: WebsiteDumpItem[]) => any): Promise<void> {
         let idx = 0;
-        for (const item of this.items) {
-            await fn(item, idx++);
+        const {items} = this;
+        for (const item of items) {
+            await fn(item, idx++, items);
         }
+    }
+
+    getTotalItems(): number {
+        return this.items.length;
     }
 
     async writePagesTo(prefix: string): Promise<void> {
@@ -132,8 +146,7 @@ export class WebsiteDump {
     async writeSitemapTo(path: string): Promise<void> {
         const xml = await this.getSitemapXML();
 
-        const logger = this.config.logger || defaults.logger;
-        logger.log("writing sitemap: " + path);
+        this.log("writing sitemap: " + path);
 
         const mkdir = this.config.mkdir || defaults.mkdir;
         const dir = path.replace(/[^\/]+$/, "");
@@ -149,23 +162,37 @@ export class WebsiteDump {
 
     async crawlAll(): Promise<void> {
         const check = {} as { [url: string]: boolean };
-        let count = 1;
+        let loop = 1;
 
-        while (count) {
-            count = 0;
+        while (1) {
+            const prev = this.getTotalItems();
+            const buf = [] as string[];
 
-            await this.forEach(async item => {
+            await this.forEach(async (item, idx, items) => {
                 const path = await item.getPath();
                 if (check[path]) return;
                 check[path] = true;
 
                 const links = await item.getLinks(true);
+                // this.log("links: " + links.length + " (" + (idx + 1) + "/" + items.length + ")");
                 if (!links) return;
 
-                links.forEach(url => this.addPage(url));
-                count += links.length;
+                buf.push.apply(buf, links);
             });
+
+            buf.forEach(url => this.addPage(url));
+
+            const total = this.getTotalItems();
+            const found = total - prev;
+            console.warn("crawl: #" + loop + " " + found + " found");
+            loop++;
+            if (!found) break;
         }
+    }
+
+    protected log(message: string): void {
+        const logger = this.config.logger || defaults.logger;
+        logger.log(message);
     }
 }
 
@@ -193,15 +220,20 @@ export class WebsiteDumpItemBase {
      */
 
     async getContent(): Promise<string> {
-        const url = this.item.loc;
+        let url = this.item.loc;
 
-        const logger = this.config.logger || defaults.logger;
-        logger.log("reading: " + url);
+        this.log("reading: " + url);
 
+        const esc = url.replace(/%/g, "%25");
         const fetcher = this.config.fetcher || defaults.fetcher;
-        const res = await fetcher.get(url);
-        const {data} = res;
-        return data;
+        try {
+            const res = await fetcher.get(esc);
+            const {data} = res;
+            return data;
+        } catch (e) {
+            console.warn("fetcher: " + e + " " + esc);
+            return;
+        }
     }
 
     /**
@@ -212,8 +244,7 @@ export class WebsiteDumpItemBase {
         const content = await this.getContent();
         const path = prefix + await this.getPath();
 
-        const logger = this.config.logger || defaults.logger;
-        logger.log("writing: " + path);
+        this.log("writing: " + path);
 
         const mkdir = this.config.mkdir || defaults.mkdir;
         const dir = path.replace(/[^\/]+$/, "");
@@ -234,21 +265,36 @@ export class WebsiteDumpItemBase {
     async getLinks(sameHost?: boolean): Promise<string[]> {
         const base = new URL(this.item.loc);
         const content = await this.getContent();
-        const $ = cheerio.load(content);
         const links = [] as string[];
+        if (!content) return;
+
+        let $: CheerioStatic;
+        try {
+            $ = cheerio.load(content);
+        } catch (e) {
+            this.log("cheerio: " + e);
+            return;
+        }
+
         const check = {} as { [href: string]: boolean };
         $("a").each((idx, a) => {
             const href = $(a).attr("href");
             if (!href) return;
             const urlObj = new URL(href, base);
             if (sameHost && base.hostname !== urlObj.hostname) return;
-            const url = urlObj.toString();
+            const url = urlObj.toString().replace(/#.*$/, "");
             const path = pathFilter(url);
             if (check[path]) return;
             links.push(url);
             check[path] = true;
         });
+
         return links;
+    }
+
+    protected log(message: string): void {
+        const logger = this.config.logger || defaults.logger;
+        logger.log(message);
     }
 }
 
