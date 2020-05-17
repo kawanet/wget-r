@@ -1,7 +1,10 @@
 /**
- * website-dump
+ * wget-r
  */
-export interface WebsiteDumpConfig {
+export interface WgetRConfig {
+    include?: RegExp | {
+        test: (path: string) => boolean;
+    };
     logger?: {
         log: (log: string) => void;
     };
@@ -19,16 +22,13 @@ export interface WebsiteDumpConfig {
         writeFile: (path: string, content: string) => Promise<void>;
     };
 }
-export declare class WebsiteDump {
-    protected config: WebsiteDumpConfig;
-    protected items: WebsiteDumpItem[];
+export declare class WgetR {
+    protected config: WgetRConfig;
+    protected items: WgetRItem[];
     protected stored: {
         [url: string]: boolean;
     };
-    protected fetched: {
-        [url: string]: boolean;
-    };
-    constructor(config?: WebsiteDumpConfig);
+    constructor(config?: WgetRConfig);
     /**
      * Add page items from remote sitemap.xml
      */
@@ -41,7 +41,8 @@ export declare class WebsiteDump {
     /**
      * Run loop for each page
      */
-    forEach(fn: (item: WebsiteDumpItem, idx: number) => any): Promise<void>;
+    forEach(fn: (item: WgetRItem, idx?: number, array?: WgetRItem[]) => any): Promise<void>;
+    getTotalItems(): number;
     writePagesTo(prefix: string): Promise<void>;
     /**
      * Generate sitemap.xml
@@ -51,16 +52,21 @@ export declare class WebsiteDump {
      * Write sitemap.xml file to local
      */
     writeSitemapTo(path: string): Promise<void>;
+    /**
+     * Crawl
+     */
+    crawlAll(): Promise<void>;
+    protected log(message: string): void;
 }
 export declare class SitemapItem {
     loc: string;
     priority?: string;
     lastmod?: string;
 }
-export declare class WebsiteDumpItemBase {
+export declare class WgetRItemBase {
     protected item: SitemapItem;
-    protected config: WebsiteDumpConfig;
-    constructor(item: SitemapItem, config: WebsiteDumpConfig);
+    protected config: WgetRConfig;
+    constructor(item: SitemapItem, config: WgetRConfig);
     /**
      * Get sitemap item
      */
@@ -74,11 +80,16 @@ export declare class WebsiteDumpItemBase {
      */
     writePageTo(prefix: string): Promise<void>;
     getPath(): Promise<string>;
+    /**
+     * list of URLs linked by the page.
+     */
+    getLinks(sameHost?: boolean): Promise<string[]>;
+    protected log(message: string): void;
 }
 /**
  * cached content
  */
-export declare class WebsiteDumpItem extends WebsiteDumpItemBase {
+export declare class WgetRItem extends WgetRItemBase {
     private _content;
     getContent(): Promise<string>;
 }

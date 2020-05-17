@@ -10,7 +10,7 @@ import {URL} from "url";
 const fromXML = require("from-xml").fromXML;
 const toXML = require("to-xml").toXML;
 
-export interface WebsiteDumpConfig {
+export interface WgetRConfig {
     include?: RegExp | { test: (path: string) => boolean };
     logger?: { log: (log: string) => void };
     fetcher?: { get: (url: string) => Promise<{ data: string }> };
@@ -18,7 +18,7 @@ export interface WebsiteDumpConfig {
     writer?: { writeFile: (path: string, content: string) => Promise<void> };
 }
 
-const defaults: WebsiteDumpConfig = {
+const defaults: WgetRConfig = {
     // logger: console,
     logger: {log: through},
 
@@ -43,13 +43,13 @@ function sitemapFilter(item: SitemapItem): SitemapItem {
     return {loc, lastmod, priority};
 }
 
-export class WebsiteDump {
-    protected config: WebsiteDumpConfig;
-    protected items: WebsiteDumpItem[] = [];
+export class WgetR {
+    protected config: WgetRConfig;
+    protected items: WgetRItem[] = [];
     protected stored: { [url: string]: boolean } = {};
 
-    constructor(config?: WebsiteDumpConfig) {
-        this.config = config || {} as WebsiteDumpConfig;
+    constructor(config?: WgetRConfig) {
+        this.config = config || {} as WgetRConfig;
     }
 
     /**
@@ -106,14 +106,14 @@ export class WebsiteDump {
         this.stored[path] = true;
 
         // add item
-        this.items.push(new WebsiteDumpItem(item, this.config));
+        this.items.push(new WgetRItem(item, this.config));
     }
 
     /**
      * Run loop for each page
      */
 
-    async forEach(fn: (item: WebsiteDumpItem, idx?: number, array?: WebsiteDumpItem[]) => any): Promise<void> {
+    async forEach(fn: (item: WgetRItem, idx?: number, array?: WgetRItem[]) => any): Promise<void> {
         let idx = 0;
         const {items} = this;
         for (const item of items) {
@@ -216,8 +216,8 @@ export class SitemapItem {
     lastmod?: string;
 }
 
-export class WebsiteDumpItemBase {
-    constructor(protected item: SitemapItem, protected config: WebsiteDumpConfig) {
+export class WgetRItemBase {
+    constructor(protected item: SitemapItem, protected config: WgetRConfig) {
         //
     }
 
@@ -315,7 +315,7 @@ export class WebsiteDumpItemBase {
  * cached content
  */
 
-export class WebsiteDumpItem extends WebsiteDumpItemBase {
+export class WgetRItem extends WgetRItemBase {
     private _content: Promise<string>;
 
     async getContent(): Promise<string> {

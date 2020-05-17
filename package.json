@@ -1,6 +1,6 @@
 {
   "name": "wget-r",
-  "description": "Dump Website",
+  "description": "`wget -r` for Node.js",
   "version": "0.1.0",
   "author": "@kawanet",
   "dependencies": {

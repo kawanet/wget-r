@@ -1,30 +1,32 @@
 # wget-r
 
+`wget -r` for Node.js
+
 [![Node.js CI](https://github.com/kawanet/wget-r/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/wget-r/actions/)
 
 ## SYNOPSIS
 
 ```js
-const WebsiteDump = require("wget-r").WebsiteDump;
+const WgetR = require("wget-r").WgetR;
 const axios = require("axios");
 
 async function CLI() {
     const options = {
-        logger: console,
         fetcher: axios.create(),
-        htmlFilter: (html) => html.replace(/(<\/body)/, '<script src="example.js"></script>\n$1'),
+        include: /^\/blog\//,
+        logger: console
     };
 
-    const webdump = new WebsiteDump(options);
+    const wgetR = new WgetR(options);
 
-    await webdump.addSitemap("https://example.com/sitemap.xml");
+    await wgetR.addSitemap("https://example.com/blog/sitemap.xml");
 
-    await webdump.writePagesTo("htdocs/");
+    await wgetR.writePagesTo("htdocs/");
 
-    await webdump.writeSitemapTo("htdocs/sitemap.xml");
+    await wgetR.writeSitemapTo("htdocs/blog/sitemap.xml");
 }
 
-Promise.resolve().then(CLI).then(console.log, console.warn);
+Promise.resolve().then(CLI).catch(console.warn);
 ```
 
 ## LICENSE
