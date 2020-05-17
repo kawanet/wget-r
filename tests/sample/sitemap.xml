@@ -3,4 +3,7 @@
     <url>
         <loc>http://127.0.0.1:3000/sample/index.html</loc>
     </url>
+    <url>
+        <loc>http://127.0.0.1:3000/sample/links.html</loc>
+    </url>
 </urlset>
