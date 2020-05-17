@@ -1,5 +1,5 @@
 /**
- * website-dump
+ * wget-r
  */
 
 import axios from "axios";

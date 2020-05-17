@@ -1,5 +1,5 @@
 {
-  "name": "website-dump",
+  "name": "wget-r",
   "description": "Dump Website",
   "version": "0.1.0",
   "author": "@kawanet",
@@ -18,10 +18,10 @@
     "typescript": "^3.9.2"
   },
   "license": "MIT",
-  "main": "lib/website-dump.js",
+  "main": "lib/wget-r.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kawanet/website-dump.git"
+    "url": "git+https://github.com/kawanet/wget-r.git"
   },
   "scripts": {
     "build": "npm run build-lib && npm run build-types",

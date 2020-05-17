@@ -1,11 +1,11 @@
-# website-dump
+# wget-r
 
-[![Node.js CI](https://github.com/kawanet/website-dump/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/website-dump/actions/)
+[![Node.js CI](https://github.com/kawanet/wget-r/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/wget-r/actions/)
 
 ## SYNOPSIS
 
 ```js
-const WebsiteDump = require("website-dump").WebsiteDump;
+const WebsiteDump = require("wget-r").WebsiteDump;
 const axios = require("axios");
 
 async function CLI() {
