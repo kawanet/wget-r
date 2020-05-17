@@ -142,6 +142,31 @@ export class WebsiteDump {
         const writer = this.config.writer || defaults.writer;
         await writer.writeFile(path, xml);
     }
+
+    /**
+     * Crawl
+     */
+
+    async crawlAll(): Promise<void> {
+        const check = {} as { [url: string]: boolean };
+        let count = 1;
+
+        while (count) {
+            count = 0;
+
+            await this.forEach(async item => {
+                const path = await item.getPath();
+                if (check[path]) return;
+                check[path] = true;
+
+                const links = await item.getLinks();
+                if (!links) return;
+
+                links.forEach(url => this.addPage(url));
+                count += links.length;
+            });
+        }
+    }
 }
 
 export class SitemapItem {

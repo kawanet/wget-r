@@ -18,7 +18,6 @@ describe(TITLE, function () {
         logger: console,
     };
 
-
     it("getLinks()", async () => {
         const webdump = new WebsiteDump(webdumpConfig);
 
@@ -28,5 +27,15 @@ describe(TITLE, function () {
             const links = await item.getLinks();
             assert.equal(links.length, 2, "should find 2 links");
         });
+    });
+
+    it("crawlAll()", async () => {
+        const webdump = new WebsiteDump(webdumpConfig);
+        webdump.addPage("http://127.0.0.1:3000/sample/links.html");
+        await webdump.crawlAll();
+
+        let count = 0;
+        await webdump.forEach(item => count++);
+        assert.equal(count, 5, "sould find 5 links");
     });
 });
