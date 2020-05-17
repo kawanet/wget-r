@@ -30,6 +30,7 @@ const defaults: WebsiteDumpConfig = {
 };
 
 function pathFilter(path: string) {
+    path = decodeURIComponent(path);
     return path
         .replace(/^([\w\-]+\:)?\/\/[^\/]+\//, "")
         .replace(/[\?\#].*$/, "")
@@ -46,7 +47,6 @@ export class WebsiteDump {
     protected config: WebsiteDumpConfig;
     protected items: WebsiteDumpItem[] = [];
     protected stored: { [url: string]: boolean } = {};
-    protected fetched: { [url: string]: boolean } = {};
 
     constructor(config?: WebsiteDumpConfig) {
         this.config = config || {} as WebsiteDumpConfig;
@@ -58,10 +58,16 @@ export class WebsiteDump {
 
     async addSitemap(url: string): Promise<void> {
         this.log("reading sitemap: " + url);
+        let data: string;
 
         const fetcher = this.config.fetcher || defaults.fetcher;
-        const res = await fetcher.get(url);
-        const {data} = res;
+        try {
+            const res = await fetcher.get(url);
+            data = res.data;
+        } catch (e) {
+            this.log("fetcher: " + e + " " + url);
+            return;
+        }
 
         const sitemap = fromXML(data);
 
@@ -87,16 +93,17 @@ export class WebsiteDump {
     }
 
     private addSitemapItem(item: SitemapItem): void {
-        const {loc} = item;
+        let {loc} = item;
 
         // test pathname is allowed
         const url = new URL(loc);
         const {include} = this.config;
         if (include && !include.test(url.pathname)) return;
 
-        // double check
-        if (this.stored[loc]) return;
-        this.stored[loc] = true;
+        // skip when another file stored
+        const path = pathFilter(loc);
+        if (this.stored[path]) return;
+        this.stored[path] = true;
 
         // add item
         this.items.push(new WebsiteDumpItem(item, this.config));
@@ -119,7 +126,14 @@ export class WebsiteDump {
     }
 
     async writePagesTo(prefix: string): Promise<void> {
-        return this.forEach(item => item.writePageTo(prefix));
+        const check = {} as { [url: string]: boolean };
+
+        await this.forEach(async item => {
+            const path = await item.getPath();
+            if (check[path]) return;
+            check[path] = true;
+            await item.writePageTo(prefix);
+        });
     }
 
     /**
@@ -184,7 +198,7 @@ export class WebsiteDump {
 
             const total = this.getTotalItems();
             const found = total - prev;
-            console.warn("crawl: #" + loop + " " + found + " found");
+            this.log("crawl: #" + loop + " " + found + " found");
             loop++;
             if (!found) break;
         }
@@ -224,14 +238,13 @@ export class WebsiteDumpItemBase {
 
         this.log("reading: " + url);
 
-        const esc = url.replace(/%/g, "%25");
         const fetcher = this.config.fetcher || defaults.fetcher;
         try {
-            const res = await fetcher.get(esc);
+            const res = await fetcher.get(url);
             const {data} = res;
             return data;
         } catch (e) {
-            console.warn("fetcher: " + e + " " + esc);
+            this.log("fetcher: " + e + " " + url);
             return;
         }
     }
