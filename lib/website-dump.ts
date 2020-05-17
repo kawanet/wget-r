@@ -13,9 +13,6 @@ export interface WebsiteDumpConfig {
     fetcher?: { get: (url: string) => Promise<{ data: string }> };
     mkdir?: { mkdir: (path: string, options: { recursive: true }) => Promise<any> };
     writer?: { writeFile: (path: string, content: string) => Promise<void> };
-    pathFilter?: (path: string) => string | Promise<string>;
-    htmlFilter?: (html: string, url?: string) => string | Promise<string>;
-    sitemapFilter?: (item: WebsiteDumpSitemapItem) => WebsiteDumpSitemapItem | Promise<WebsiteDumpSitemapItem>;
 }
 
 const defaults: WebsiteDumpConfig = {
@@ -27,13 +24,20 @@ const defaults: WebsiteDumpConfig = {
     mkdir: fs,
 
     writer: fs,
+};
 
-    pathFilter: (path: string) => path
+function pathFilter(path: string) {
+    return path
         .replace(/^([\w\-]+\:)?\/\/[^\/]+\//, "")
         .replace(/[\?\#].*$/, "")
         .replace(/\/[^\/]+?(\.html?)?$/i, (match, ext) => (ext ? match : match + "/"))
-        .replace(/\/$/, "/index.html"),
-};
+        .replace(/\/$/, "/index.html");
+}
+
+function sitemapFilter(item: SitemapItem): SitemapItem {
+    const {loc, lastmod, priority} = item;
+    return {loc, lastmod, priority};
+}
 
 export class WebsiteDump {
     protected config: WebsiteDumpConfig;
@@ -80,7 +84,7 @@ export class WebsiteDump {
         this.addSitemapItem({loc: url});
     }
 
-    private addSitemapItem(item: WebsiteDumpSitemapItem): void {
+    private addSitemapItem(item: SitemapItem): void {
         const {loc} = item;
         if (this.stored[loc]) return;
         this.stored[loc] = true;
@@ -109,13 +113,10 @@ export class WebsiteDump {
     async getSitemapXML(): Promise<string> {
         const data = {'?': 'xml version="1.0" encoding="utf-8"'} as any;
         const urlset = data.urlset = {"@xmlns": "http://www.sitemaps.org/schemas/sitemap/0.9"} as any;
-        const list = urlset.url = [] as WebsiteDumpSitemapItem[];
-
-        const sitemapFilter = this.config.sitemapFilter || defaults.sitemapFilter;
+        const list = urlset.url = [] as SitemapItem[];
 
         await this.forEach(async item => {
-            let row = await item.getSitemapItem();
-            if (sitemapFilter) row = await sitemapFilter(row);
+            const row = await item.getSitemapItem();
             list.push(row);
         });
 
@@ -141,14 +142,14 @@ export class WebsiteDump {
     }
 }
 
-export class WebsiteDumpSitemapItem {
+export class SitemapItem {
     loc: string;
     priority?: string;
     lastmod?: string;
 }
 
 export class WebsiteDumpItemBase {
-    constructor(protected item: WebsiteDumpSitemapItem, protected config: WebsiteDumpConfig) {
+    constructor(protected item: SitemapItem, protected config: WebsiteDumpConfig) {
         //
     }
 
@@ -156,15 +157,15 @@ export class WebsiteDumpItemBase {
      * Get sitemap item
      */
 
-    async getSitemapItem(): Promise<WebsiteDumpSitemapItem> {
-        return this.item;
+    async getSitemapItem(): Promise<SitemapItem> {
+        return sitemapFilter(this.item);
     }
 
     /**
      * Fetch HTML source from server
      */
 
-    async getRawContent(): Promise<string> {
+    async getContent(): Promise<string> {
         const url = this.item.loc;
 
         const logger = this.config.logger || defaults.logger;
@@ -177,24 +178,12 @@ export class WebsiteDumpItemBase {
     }
 
     /**
-     * Get filtered HTML source
-     */
-
-    async getPageContent(): Promise<string> {
-        const source = await this.getRawContent();
-        const htmlFilter = this.config.htmlFilter || defaults.htmlFilter || through;
-        return await htmlFilter(source, this.item.loc);
-    }
-
-    /**
      * Fetch HTML page from server and write to local
      */
 
     async writePageTo(prefix: string): Promise<void> {
-        const content = await this.getPageContent();
-
-        const pathFilter = this.config.pathFilter || defaults.pathFilter || through;
-        const path = prefix + await pathFilter(this.item.loc);
+        const content = await this.getContent();
+        const path = prefix + await this.getPath();
 
         const logger = this.config.logger || defaults.logger;
         logger.log("writing: " + path);
@@ -206,18 +195,21 @@ export class WebsiteDumpItemBase {
         const writer = this.config.writer || defaults.writer;
         await writer.writeFile(path, content);
     }
+
+    async getPath(): Promise<string> {
+        return pathFilter(this.item.loc);
+    }
 }
 
+/**
+ * cached content
+ */
+
 export class WebsiteDumpItem extends WebsiteDumpItemBase {
-    private _raw: Promise<string>;
-    private _page: Promise<string>;
+    private _content: Promise<string>;
 
-    async getRawContent(): Promise<string> {
-        return this._raw || (this._raw = super.getRawContent());
-    }
-
-    async getPageContent(): Promise<string> {
-        return this._page || (this._page = super.getPageContent());
+    async getContent(): Promise<string> {
+        return this._content || (this._content = super.getContent());
     }
 }
 
@@ -225,10 +217,10 @@ export class WebsiteDumpItem extends WebsiteDumpItemBase {
  * @private
  */
 
-function getItemList(list: WebsiteDumpSitemapItem | WebsiteDumpSitemapItem[]): WebsiteDumpSitemapItem[] {
-    const item = list as WebsiteDumpSitemapItem;
+function getItemList(list: SitemapItem | SitemapItem[]): SitemapItem[] {
+    const item = list as SitemapItem;
     if ("string" === typeof item?.loc) return [item];
-    return list as WebsiteDumpSitemapItem[];
+    return list as SitemapItem[];
 }
 
 function through(input: any) {

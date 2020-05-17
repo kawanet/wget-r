@@ -28,7 +28,7 @@ describe(TITLE, function () {
         assert.ok(xml.indexOf("<loc>"), "sitemap.xml should have <loc>");
 
         webdump.forEach(async (item) => {
-            const content = await item.getPageContent();
+            const content = await item.getContent();
             assert.ok(content, "content should not be empty");
             assert.ok((content.indexOf("</html>") > -1), "content have </html>");
         });

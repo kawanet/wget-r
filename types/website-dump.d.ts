@@ -18,14 +18,14 @@ export interface WebsiteDumpConfig {
     writer?: {
         writeFile: (path: string, content: string) => Promise<void>;
     };
-    pathFilter?: (path: string) => string | Promise<string>;
-    htmlFilter?: (html: string, url?: string) => string | Promise<string>;
-    sitemapFilter?: (item: WebsiteDumpSitemapItem) => WebsiteDumpSitemapItem | Promise<WebsiteDumpSitemapItem>;
 }
 export declare class WebsiteDump {
     protected config: WebsiteDumpConfig;
     protected items: WebsiteDumpItem[];
     protected stored: {
+        [url: string]: boolean;
+    };
+    protected fetched: {
         [url: string]: boolean;
     };
     constructor(config?: WebsiteDumpConfig);
@@ -52,27 +52,33 @@ export declare class WebsiteDump {
      */
     writeSitemapTo(path: string): Promise<void>;
 }
-export declare class WebsiteDumpSitemapItem {
+export declare class SitemapItem {
     loc: string;
     priority?: string;
     lastmod?: string;
 }
-export declare class WebsiteDumpItem {
-    protected item: WebsiteDumpSitemapItem;
+export declare class WebsiteDumpItemBase {
+    protected item: SitemapItem;
     protected config: WebsiteDumpConfig;
-    private content;
-    constructor(item: WebsiteDumpSitemapItem, config: WebsiteDumpConfig);
+    constructor(item: SitemapItem, config: WebsiteDumpConfig);
     /**
      * Get sitemap item
      */
-    getSitemapItem(): Promise<WebsiteDumpSitemapItem>;
+    getSitemapItem(): Promise<SitemapItem>;
     /**
      * Fetch HTML source from server
      */
     getContent(): Promise<string>;
-    private _getContent;
     /**
      * Fetch HTML page from server and write to local
      */
     writePageTo(prefix: string): Promise<void>;
+    getPath(): Promise<string>;
+}
+/**
+ * cached content
+ */
+export declare class WebsiteDumpItem extends WebsiteDumpItemBase {
+    private _content;
+    getContent(): Promise<string>;
 }
