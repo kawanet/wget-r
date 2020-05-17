@@ -1,5 +1,7 @@
 # website-dump
 
+[![Node.js CI](https://github.com/kawanet/website-dump/workflows/Node.js%20CI/badge.svg?branch=master)](https://github.com/kawanet/website-dump/actions/)
+
 ## SYNOPSIS
 
 ```js
