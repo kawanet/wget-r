@@ -159,7 +159,7 @@ export class WebsiteDump {
                 if (check[path]) return;
                 check[path] = true;
 
-                const links = await item.getLinks();
+                const links = await item.getLinks(true);
                 if (!links) return;
 
                 links.forEach(url => this.addPage(url));
@@ -231,7 +231,8 @@ export class WebsiteDumpItemBase {
      * list of URLs linked by the page.
      */
 
-    async getLinks(): Promise<string[]> {
+    async getLinks(sameHost?: boolean): Promise<string[]> {
+        const base = new URL(this.item.loc);
         const content = await this.getContent();
         const $ = cheerio.load(content);
         const links = [] as string[];
@@ -239,7 +240,9 @@ export class WebsiteDumpItemBase {
         $("a").each((idx, a) => {
             const href = $(a).attr("href");
             if (!href) return;
-            const url = (new URL(href, this.item.loc)).toString();
+            const urlObj = new URL(href, base);
+            if (sameHost && base.hostname !== urlObj.hostname) return;
+            const url = urlObj.toString();
             const path = pathFilter(url);
             if (check[path]) return;
             links.push(url);
