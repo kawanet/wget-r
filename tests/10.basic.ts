@@ -2,7 +2,7 @@
 
 import {strict as assert} from "assert";
 import {promises as fs} from "fs";
-import {WgetR} from "../lib/wget-r";
+import {wgetR} from "../lib/wget-r";
 
 const TITLE = __filename.split("/").pop();
 
@@ -20,15 +20,15 @@ describe(TITLE, function () {
             logger: console,
         };
 
-        const wgetR = new WgetR(webdumpConfig);
-        await wgetR.addSitemap("http://127.0.0.1:3000/sample/sitemapindex.xml");
+        const wr = wgetR(webdumpConfig);
+        await wr.addSitemap("http://127.0.0.1:3000/sample/sitemapindex.xml");
 
-        const xml = await wgetR.getSitemapXML();
+        const xml = await wr.getSitemapXML();
         assert.ok(xml, "sitemap.xml should not be empty");
         assert.ok(xml.indexOf("<loc>"), "sitemap.xml should have <loc>");
 
         let count = 0;
-        await wgetR.forEach(async (item) => {
+        await wr.forEach(async (item) => {
             const content = await item.getContent();
             assert.ok(content, "content should not be empty");
             assert.ok((content.indexOf("</html>") > -1), "content have </html>");

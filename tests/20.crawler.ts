@@ -2,7 +2,7 @@
 
 import {strict as assert} from "assert";
 import {promises as fs} from "fs";
-import {WgetR} from "../lib/wget-r";
+import {wgetR} from "../lib/wget-r";
 
 const TITLE = __filename.split("/").pop();
 
@@ -19,23 +19,23 @@ describe(TITLE, function () {
     };
 
     it("getLinks()", async () => {
-        const wgetR = new WgetR(webdumpConfig);
+        const wr = wgetR(webdumpConfig);
 
-        wgetR.addPage("http://127.0.0.1:3000/sample/links.html");
+        wr.addPage("http://127.0.0.1:3000/sample/links.html");
 
-        await wgetR.forEach(async (item) => {
+        await wr.forEach(async (item) => {
             const links = await item.getLinks();
             assert.equal(links.length, 2, "should find 2 links");
         });
     });
 
     it("crawlAll()", async () => {
-        const wgetR = new WgetR(webdumpConfig);
-        wgetR.addPage("http://127.0.0.1:3000/sample/links.html");
-        await wgetR.crawlAll();
+        const wr = wgetR(webdumpConfig);
+        wr.addPage("http://127.0.0.1:3000/sample/links.html");
+        await wr.crawlAll();
 
         let count = 0;
-        await wgetR.forEach(item => count++);
+        await wr.forEach(item => count++);
         assert.equal(count, 5, "sould find 5 links");
     });
 });

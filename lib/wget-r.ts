@@ -43,9 +43,13 @@ function sitemapFilter(item: SitemapItem): SitemapItem {
     return {loc, lastmod, priority};
 }
 
-export class WgetR {
+export function wgetR(config?: WgetRConfig) {
+    return new WgetR(config);
+}
+
+class WgetR {
     protected config: WgetRConfig;
-    protected items: WgetRItem[] = [];
+    protected items: WgetItem[] = [];
     protected stored: { [url: string]: boolean } = {};
 
     constructor(config?: WgetRConfig) {
@@ -106,14 +110,14 @@ export class WgetR {
         this.stored[path] = true;
 
         // add item
-        this.items.push(new WgetRItem(item, this.config));
+        this.items.push(new WgetItem(item, this.config));
     }
 
     /**
      * Run loop for each page
      */
 
-    async forEach(fn: (item: WgetRItem, idx?: number, array?: WgetRItem[]) => any): Promise<void> {
+    async forEach(fn: (item: WgetItem, idx?: number, array?: WgetItem[]) => any): Promise<void> {
         let idx = 0;
         const {items} = this;
         for (const item of items) {
@@ -216,7 +220,7 @@ export class SitemapItem {
     lastmod?: string;
 }
 
-export class WgetRItemBase {
+export class WgetItemRaw {
     constructor(protected item: SitemapItem, protected config: WgetRConfig) {
         //
     }
@@ -315,7 +319,7 @@ export class WgetRItemBase {
  * cached content
  */
 
-export class WgetRItem extends WgetRItemBase {
+export class WgetItem extends WgetItemRaw {
     private _content: Promise<string>;
 
     async getContent(): Promise<string> {

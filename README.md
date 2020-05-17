@@ -7,7 +7,7 @@
 ## SYNOPSIS
 
 ```js
-const WgetR = require("wget-r").WgetR;
+const wgetR = require("wget-r").wgetR;
 const axios = require("axios");
 
 async function CLI() {
@@ -17,17 +17,21 @@ async function CLI() {
         logger: console
     };
 
-    const wgetR = new WgetR(options);
+    const wr = wgetR(options);
 
-    await wgetR.addSitemap("https://example.com/blog/sitemap.xml");
+    await wr.addSitemap("https://example.com/blog/sitemap.xml");
 
-    await wgetR.writePagesTo("htdocs/");
+    await wr.writePagesTo("htdocs/");
 
-    await wgetR.writeSitemapTo("htdocs/blog/sitemap.xml");
+    await wr.writeSitemapTo("htdocs/blog/sitemap.xml");
 }
 
 Promise.resolve().then(CLI).catch(console.warn);
 ```
+
+## SEE ALSO
+
+- https://github.com/kawanet/wget-r/
 
 ## LICENSE
 

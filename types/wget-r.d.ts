@@ -22,9 +22,10 @@ export interface WgetRConfig {
         writeFile: (path: string, content: string) => Promise<void>;
     };
 }
-export declare class WgetR {
+export declare function wgetR(config?: WgetRConfig): WgetR;
+declare class WgetR {
     protected config: WgetRConfig;
-    protected items: WgetRItem[];
+    protected items: WgetItem[];
     protected stored: {
         [url: string]: boolean;
     };
@@ -41,7 +42,7 @@ export declare class WgetR {
     /**
      * Run loop for each page
      */
-    forEach(fn: (item: WgetRItem, idx?: number, array?: WgetRItem[]) => any): Promise<void>;
+    forEach(fn: (item: WgetItem, idx?: number, array?: WgetItem[]) => any): Promise<void>;
     getTotalItems(): number;
     writePagesTo(prefix: string): Promise<void>;
     /**
@@ -63,7 +64,7 @@ export declare class SitemapItem {
     priority?: string;
     lastmod?: string;
 }
-export declare class WgetRItemBase {
+export declare class WgetItemRaw {
     protected item: SitemapItem;
     protected config: WgetRConfig;
     constructor(item: SitemapItem, config: WgetRConfig);
@@ -89,7 +90,8 @@ export declare class WgetRItemBase {
 /**
  * cached content
  */
-export declare class WgetRItem extends WgetRItemBase {
+export declare class WgetItem extends WgetItemRaw {
     private _content;
     getContent(): Promise<string>;
 }
+export {};
