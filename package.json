@@ -5,10 +5,12 @@
   "author": "@kawanet",
   "dependencies": {
     "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
     "from-xml": "^0.1.6",
     "to-xml": "^0.1.4"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.18",
     "@types/mocha": "^7.0.2",
     "@types/node": "^14.0.1",
     "express": "^4.17.1",

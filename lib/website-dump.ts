@@ -3,7 +3,9 @@
  */
 
 import axios from "axios";
+import * as cheerio from "cheerio";
 import {promises as fs} from "fs";
+import {URL} from "url";
 
 const fromXML = require("from-xml").fromXML;
 const toXML = require("to-xml").toXML;
@@ -198,6 +200,27 @@ export class WebsiteDumpItemBase {
 
     async getPath(): Promise<string> {
         return pathFilter(this.item.loc);
+    }
+
+    /**
+     * list of URLs linked by the page.
+     */
+
+    async getLinks(): Promise<string[]> {
+        const content = await this.getContent();
+        const $ = cheerio.load(content);
+        const links = [] as string[];
+        const check = {} as { [href: string]: boolean };
+        $("a").each((idx, a) => {
+            const href = $(a).attr("href");
+            if (!href) return;
+            const url = (new URL(href, this.item.loc)).toString();
+            const path = pathFilter(url);
+            if (check[path]) return;
+            links.push(url);
+            check[path] = true;
+        });
+        return links;
     }
 }
 
