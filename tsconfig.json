@@ -9,7 +9,7 @@
     "noImplicitReturns": false,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
     "removeComments": true,
     "skipLibCheck": true,
     "strictNullChecks": false,

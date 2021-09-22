@@ -35,7 +35,7 @@ describe(TITLE, function () {
         await wr.crawlAll();
 
         let count = 0;
-        await wr.forEach(item => count++);
+        await wr.forEach(_item => count++);
         assert.equal(count, 5, "sould find 5 links");
     });
 });

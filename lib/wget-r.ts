@@ -186,7 +186,7 @@ class WgetR {
             const prev = this.getTotalItems();
             const buf = [] as string[];
 
-            await this.forEach(async (item, idx, items) => {
+            await this.forEach(async item => {
                 const path = await item.getPath();
                 if (check[path]) return;
                 check[path] = true;
@@ -294,7 +294,7 @@ export class WgetItemRaw {
         }
 
         const check = {} as { [href: string]: boolean };
-        $("a").each((idx, a) => {
+        $("a").each((_idx, a) => {
             const href = $(a).attr("href");
             if (!href) return;
             const urlObj = new URL(href, base);
