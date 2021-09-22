@@ -285,7 +285,7 @@ export class WgetItemRaw {
         const links = [] as string[];
         if (!content) return;
 
-        let $: CheerioStatic;
+        let $: cheerio.CheerioAPI;
         try {
             $ = cheerio.load(content);
         } catch (e) {
