@@ -13,9 +13,9 @@ const toXML = require("to-xml").toXML;
 export interface WgetRConfig {
     include?: RegExp | { test: (path: string) => boolean };
     logger?: { log: (log: string) => void };
-    fetcher?: { get: (url: string) => Promise<{ data: string }> };
+    fetcher?: { get: (url: string) => Promise<{ data: (string | Buffer) }> };
     mkdir?: { mkdir: (path: string, options: { recursive: true }) => Promise<any> };
-    writer?: { writeFile: (path: string, content: string) => Promise<void> };
+    writer?: { writeFile: (path: string, content: (string | Buffer)) => Promise<void> };
 }
 
 const defaults: WgetRConfig = {
@@ -62,7 +62,7 @@ class WgetR {
 
     async addSitemap(url: string): Promise<void> {
         this.log("reading sitemap: " + url);
-        let data: string;
+        let data: string | Buffer;
 
         const fetcher = this.config.fetcher || defaults.fetcher;
         try {
@@ -117,7 +117,7 @@ class WgetR {
      * Run loop for each page
      */
 
-    async forEach(fn: (item: WgetItem, idx?: number, array?: WgetItem[]) => any): Promise<void> {
+    async forEach(fn: (item: WgetItem, idx?: number, array?: WgetItem[]) => void): Promise<void> {
         let idx = 0;
         const {items} = this;
         for (const item of items) {
@@ -237,7 +237,7 @@ export class WgetItemRaw {
      * Fetch HTML source from server
      */
 
-    async getContent(): Promise<string> {
+    async getContent(): Promise<string | Buffer> {
         let url = this.item.loc;
 
         this.log("reading: " + url);
@@ -320,9 +320,9 @@ export class WgetItemRaw {
  */
 
 export class WgetItem extends WgetItemRaw {
-    private _content: Promise<string>;
+    private _content: Promise<string | Buffer>;
 
-    async getContent(): Promise<string> {
+    async getContent(): Promise<string | Buffer> {
         return this._content || (this._content = super.getContent());
     }
 }
