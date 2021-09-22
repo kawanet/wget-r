@@ -17,6 +17,12 @@
     "mocha": "^9.1.1",
     "typescript": "^4.4.3"
   },
+  "files": [
+    "lib/*.js",
+    "types/*.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT",
   "main": "lib/wget-r.js",
   "repository": {
