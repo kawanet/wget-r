@@ -2,7 +2,7 @@
 
 import {strict as assert} from "assert";
 import {promises as fs} from "fs";
-import {wgetR} from "../lib/wget-r";
+import {wgetR} from "..";
 
 const TITLE = __filename.split("/").pop();
 

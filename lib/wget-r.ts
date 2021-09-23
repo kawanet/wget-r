@@ -6,19 +6,12 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import {promises as fs} from "fs";
 import {URL} from "url";
+import {fromXML} from "from-xml";
+import {toXML} from "to-xml";
 
-const fromXML = require("from-xml").fromXML;
-const toXML = require("to-xml").toXML;
+import type {wgetr} from "..";
 
-export interface WgetRConfig {
-    include?: RegExp | { test: (path: string) => boolean };
-    logger?: { log: (log: string) => void };
-    fetcher?: { get: (url: string) => Promise<{ data: (string | Buffer) }> };
-    mkdir?: { mkdir: (path: string, options: { recursive: true }) => Promise<any> };
-    writer?: { writeFile: (path: string, content: (string | Buffer)) => Promise<void> };
-}
-
-const defaults: WgetRConfig = {
+const defaults: wgetr.Options = {
     // logger: console,
     logger: {log: through},
 
@@ -43,17 +36,17 @@ function sitemapFilter(item: SitemapItem): SitemapItem {
     return {loc, lastmod, priority};
 }
 
-export function wgetR(config?: WgetRConfig) {
+export function wgetR(config?: wgetr.Options) {
     return new WgetR(config);
 }
 
-class WgetR {
-    protected config: WgetRConfig;
-    protected items: WgetItem[] = [];
+class WgetR implements wgetr.WgetR {
+    protected config: wgetr.Options;
+    protected items: Item[] = [];
     protected stored: { [url: string]: boolean } = {};
 
-    constructor(config?: WgetRConfig) {
-        this.config = config || {} as WgetRConfig;
+    constructor(config?: wgetr.Options) {
+        this.config = config || {} as wgetr.Options;
     }
 
     /**
@@ -73,7 +66,7 @@ class WgetR {
             return;
         }
 
-        const sitemap = fromXML(data);
+        const sitemap = fromXML("string" === typeof data ? data : String(data));
 
         const sitemapList = getItemList(sitemap.sitemapindex?.sitemap);
         if (sitemapList?.length) {
@@ -110,14 +103,14 @@ class WgetR {
         this.stored[path] = true;
 
         // add item
-        this.items.push(new WgetItem(item, this.config));
+        this.items.push(new Item(item, this.config));
     }
 
     /**
      * Run loop for each page
      */
 
-    async forEach(fn: (item: WgetItem, idx?: number, array?: WgetItem[]) => void): Promise<void> {
+    async forEach(fn: (item: Item, idx?: number, array?: Item[]) => void): Promise<void> {
         let idx = 0;
         const {items} = this;
         for (const item of items) {
@@ -214,14 +207,14 @@ class WgetR {
     }
 }
 
-export class SitemapItem {
+class SitemapItem implements wgetr.SitemapItem {
     loc: string;
     priority?: string;
     lastmod?: string;
 }
 
-export class WgetItemRaw {
-    constructor(protected item: SitemapItem, protected config: WgetRConfig) {
+class ItermRaw implements wgetr.ItemRaw {
+    constructor(protected item: SitemapItem, protected config: wgetr.Options) {
         //
     }
 
@@ -319,7 +312,7 @@ export class WgetItemRaw {
  * cached content
  */
 
-export class WgetItem extends WgetItemRaw {
+class Item extends ItermRaw implements wgetr.Item {
     private _content: Promise<string | Buffer>;
 
     async getContent(): Promise<string | Buffer> {
