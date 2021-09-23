@@ -1,5 +1,5 @@
 /**
- * wget-r
+ * https://github.com/kawanet/wget-r/
  */
 
 export declare namespace wgetr {

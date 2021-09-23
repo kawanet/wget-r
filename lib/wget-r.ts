@@ -1,40 +1,17 @@
 /**
- * wget-r
+ * https://github.com/kawanet/wget-r/
  */
 
-import axios from "axios";
-import * as cheerio from "cheerio";
-import {promises as fs} from "fs";
 import {URL} from "url";
 import {fromXML} from "from-xml";
 import {toXML} from "to-xml";
 
 import type {wgetr} from "..";
+import {Item} from "./item";
+import {defaults} from "./defaults";
+import {pathFilter} from "./util";
 
-const defaults: wgetr.Options = {
-    // logger: console,
-    logger: {log: through},
-
-    fetcher: axios,
-
-    mkdir: fs,
-
-    writer: fs,
-};
-
-function pathFilter(path: string) {
-    path = decodeURIComponent(path);
-    return path
-        .replace(/^([\w\-]+\:)?\/\/[^\/]+\//, "")
-        .replace(/[\?\#].*$/, "")
-        .replace(/\/[^\/]+?(\.html?)?$/i, (match, ext) => (ext ? match : match + "/"))
-        .replace(/\/$/, "/index.html");
-}
-
-function sitemapFilter(item: SitemapItem): SitemapItem {
-    const {loc, lastmod, priority} = item;
-    return {loc, lastmod, priority};
-}
+type SitemapItem = wgetr.SitemapItem;
 
 export function wgetR(config?: wgetr.Options) {
     return new WgetR(config);
@@ -207,119 +184,6 @@ class WgetR implements wgetr.WgetR {
     }
 }
 
-class SitemapItem implements wgetr.SitemapItem {
-    loc: string;
-    priority?: string;
-    lastmod?: string;
-}
-
-class ItermRaw implements wgetr.ItemRaw {
-    constructor(protected item: SitemapItem, protected config: wgetr.Options) {
-        //
-    }
-
-    /**
-     * Get sitemap item
-     */
-
-    async getSitemapItem(): Promise<SitemapItem> {
-        return sitemapFilter(this.item);
-    }
-
-    /**
-     * Fetch HTML source from server
-     */
-
-    async getContent(): Promise<string | Buffer> {
-        let url = this.item.loc;
-
-        this.log("reading: " + url);
-
-        const fetcher = this.config.fetcher || defaults.fetcher;
-        try {
-            const res = await fetcher.get(url);
-            const {data} = res;
-            return data;
-        } catch (e) {
-            this.log("fetcher: " + e + " " + url);
-            return;
-        }
-    }
-
-    /**
-     * Fetch HTML page from server and write to local
-     */
-
-    async writePageTo(prefix: string): Promise<void> {
-        const content = await this.getContent();
-        const path = prefix + await this.getPath();
-
-        this.log("writing: " + path);
-
-        const mkdir = this.config.mkdir || defaults.mkdir;
-        const dir = path.replace(/[^\/]+$/, "");
-        await mkdir.mkdir(dir, {recursive: true});
-
-        const writer = this.config.writer || defaults.writer;
-        await writer.writeFile(path, content);
-    }
-
-    async getPath(): Promise<string> {
-        return pathFilter(this.item.loc);
-    }
-
-    /**
-     * list of URLs linked by the page.
-     */
-
-    async getLinks(sameHost?: boolean): Promise<string[]> {
-        const base = new URL(this.item.loc);
-        const content = await this.getContent();
-        const links = [] as string[];
-        if (!content) return;
-
-        let $: cheerio.CheerioAPI;
-        try {
-            $ = cheerio.load(content);
-        } catch (e) {
-            this.log("cheerio: " + e);
-            return;
-        }
-
-        const check = {} as { [href: string]: boolean };
-        $("a").each((_idx, a) => {
-            const href = $(a).attr("href");
-            if (!href) return;
-            const urlObj = new URL(href, base);
-            if (sameHost && base.hostname !== urlObj.hostname) return;
-            const url = urlObj.toString().replace(/#.*$/, "");
-            const path = pathFilter(url);
-            if (check[path]) return;
-            links.push(url);
-            check[path] = true;
-        });
-
-        return links;
-    }
-
-    protected log(message: string): void {
-        const logger = this.config.logger || defaults.logger;
-        logger.log(message);
-    }
-}
-
-/**
- * cached content
- */
-
-class Item extends ItermRaw implements wgetr.Item {
-    private _content: Promise<string | Buffer>;
-
-    async getContent(): Promise<string | Buffer> {
-        return this._content || (this._content = super.getContent());
-    }
-}
-
 /**
  * @private
  */
@@ -328,8 +192,4 @@ function getItemList(list: SitemapItem | SitemapItem[]): SitemapItem[] {
     const item = list as SitemapItem;
     if ("string" === typeof item?.loc) return [item];
     return list as SitemapItem[];
-}
-
-function through(input: any) {
-    return input;
 }
