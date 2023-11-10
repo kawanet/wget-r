@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "author": "@kawanet",
   "dependencies": {
-    "axios": "0.21.1",
+    "axios": "1.6.0",
     "cheerio": "^1.0.0-rc.10",
     "from-xml": "^0.1.7",
     "to-xml": "^0.1.7"
