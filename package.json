@@ -30,10 +30,10 @@
     "url": "git+https://github.com/kawanet/wget-r.git"
   },
   "scripts": {
-    "build": "./node_modules/.bin/tsc -p .",
+    "build": "npm exec tsc -p .",
     "fixpack": "fixpack",
     "mocha": "./node_modules/.bin/mocha -R spec tests/*.js",
-    "postinstall": "[ -f src/index.js ] || npm run build",
+    "postinstall": "[ -f lib/wget-r.js ] || npm run build",
     "prepack": "npm run build && npm test",
     "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
