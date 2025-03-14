@@ -1,13 +1,13 @@
 {
   "name": "wget-r",
   "description": "`wget -r` for Node.js",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "@kawanet",
   "dependencies": {
     "axios": "0.21.1",
     "cheerio": "^1.0.0-rc.10",
-    "from-xml": "^0.1.7",
-    "to-xml": "^0.1.7"
+    "from-xml": "^0.1.11",
+    "to-xml": "^0.1.11"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.30",
@@ -33,6 +33,7 @@
     "build": "./node_modules/.bin/tsc -p .",
     "fixpack": "fixpack",
     "mocha": "./node_modules/.bin/mocha -R spec tests/*.js",
+    "postinstall": "[ -f src/index.js ] || npm run build",
     "prepack": "npm run build && npm test",
     "test": "npm run mocha",
     "tsc-watch": "tsc --watch"
